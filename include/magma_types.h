@@ -73,6 +73,7 @@ typedef double real_Double_t;
     #endif
 
     #include <cusparse_v2.h>
+    #include <ozimmu.hpp>
 
     #ifdef __cplusplus
     extern "C" {

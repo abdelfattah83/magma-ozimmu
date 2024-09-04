@@ -999,6 +999,7 @@ magma_queue_create_internal(
 #if defined(MAGMA_HAVE_CUDA)
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+	queue->ozimmu_handle__ = NULL;
 #elif defined(MAGMA_HAVE_HIP)
     queue->hipblas__  = NULL;
     queue->hipsparse__ = NULL;
@@ -1026,6 +1027,8 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+	mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
 #elif defined(MAGMA_HAVE_HIP)
 
     hipblasStatus_t stat;
@@ -1264,6 +1267,8 @@ magma_queue_destroy_internal(
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
+
+		mtk::ozimmu::destroy(queue->ozimmu_handle__);
     #elif defined(MAGMA_HAVE_HIP)
 
         if ( queue->hipblas__ != NULL && (queue->own__ & own_hipblas)) {

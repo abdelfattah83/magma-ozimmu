@@ -197,9 +197,10 @@ protected:
     void**           dCarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
 
     #ifdef MAGMA_HAVE_CUDA
-    cudaStream_t     stream__;      // associated CUDA stream; may be NULL
-    cublasHandle_t   cublas__;      // associated cuBLAS handle
-    cusparseHandle_t cusparse__;    // associated cuSparse handle
+    cudaStream_t     stream__;             // associated CUDA stream; may be NULL
+    cublasHandle_t   cublas__;             // associated cuBLAS handle
+    cusparseHandle_t cusparse__;           // associated cuSparse handle
+	mtk::ozimmu::handle_t ozimmu_handle__; // associated ozIMMU handle
     #endif // MAGMA_HAVE_CUDA
 
     #ifdef MAGMA_HAVE_HIP
