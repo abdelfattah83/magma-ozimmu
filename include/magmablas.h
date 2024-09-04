@@ -18,4 +18,15 @@
 #include "magmablas_ds.h"
 #include "magmablas_h.h"
 
+void
+magma_dgemm_ozimmu(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    double alpha,
+    const double* dA, magma_int_t ldda,
+    const double* dB, magma_int_t lddb,
+    double beta,
+    double      * dC, magma_int_t lddc,
+    magma_queue_t queue );
+
 #endif // MAGMABLAS_H

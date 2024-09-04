@@ -1353,6 +1353,39 @@ magma_zgemm(
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
+
+#ifdef PRECISION_d
+extern "C" void
+magma_dgemm_ozimmu(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    double alpha,
+    const double* dA, magma_int_t ldda,
+    const double* dB, magma_int_t lddb,
+    double beta,
+    double      * dC, magma_int_t lddc,
+    magma_queue_t queue )
+{
+    const mtk::ozimmu::operation_t op_A = (transA == MagmaNoTrans) ? mtk::ozimmu::op_n : mtk::ozimmu::op_t;
+    const mtk::ozimmu::operation_t op_B = (transB == MagmaNoTrans) ? mtk::ozimmu::op_n : mtk::ozimmu::op_t;
+
+    // specify compute mode
+    const mtk::ozimmu::compute_mode_t compute_mode = mtk::ozimmu::fp64_int8_18;
+    const mtk::ozimmu::element_kind_t element_kind = mtk::ozimmu::real;
+
+    mtk::ozimmu::gemm(
+            queue->ozimmu_handle__, op_A, op_B,
+            (size_t)m, (size_t)n, (size_t)k,
+            (const void *)&alpha,
+            (const void *const)dA, (const size_t)lda,
+            (const void *const)dB, (const size_t)ldb,
+            (const void *(&beta,
+            (void *const      )dC, (size_t      )ldc,
+            compute_mode, element_kind);
+}
+
+#endif
+
 #ifdef COMPLEX
 /***************************************************************************//**
     Perform Hermitian matrix-matrix product.
