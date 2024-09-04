@@ -1377,10 +1377,10 @@ magma_dgemm_ozimmu(
             queue->ozimmu_handle__, op_A, op_B,
             (size_t)m, (size_t)n, (size_t)k,
             (const void *)&alpha,
-            (const void *const)dA, (const size_t)lda,
-            (const void *const)dB, (const size_t)ldb,
+            (const void *const)dA, (const size_t)ldda,
+            (const void *const)dB, (const size_t)lddb,
             (const void *)&beta,
-            (void *const      )dC, (size_t      )ldc,
+            (void *const      )dC, (size_t      )lddc,
             compute_mode, element_kind);
 }
 

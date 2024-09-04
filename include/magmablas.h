@@ -18,6 +18,7 @@
 #include "magmablas_ds.h"
 #include "magmablas_h.h"
 
+extern "C"
 void
 magma_dgemm_ozimmu(
     magma_trans_t transA, magma_trans_t transB,
