@@ -1379,7 +1379,7 @@ magma_dgemm_ozimmu(
             (const void *)&alpha,
             (const void *const)dA, (const size_t)lda,
             (const void *const)dB, (const size_t)ldb,
-            (const void *(&beta,
+            (const void *)&beta,
             (void *const      )dC, (size_t      )ldc,
             compute_mode, element_kind);
 }

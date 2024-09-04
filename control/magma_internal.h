@@ -106,6 +106,8 @@ public:
     /// MAGMA assumes the handle won't be changed, e.g., its stream won't be modified.
     cusparseHandle_t cusparse_handle() { return cusparse__; }
 
+    mtk::ozimmu::handle_t ozimmu_handle__; // associated ozIMMU handle
+
     #endif
 
     // pointer array setup.
@@ -118,9 +120,9 @@ public:
             dCarray__ = dBarray__ + maxbatch__;
         }
     }
-    
+
     #ifdef MAGMA_HAVE_HIP
-    
+
     hipStream_t      hip_stream()      { return stream__; };
 
     hipblasHandle_t  hipblas_handle()  { return hipblas__; };
@@ -200,7 +202,6 @@ protected:
     cudaStream_t     stream__;             // associated CUDA stream; may be NULL
     cublasHandle_t   cublas__;             // associated cuBLAS handle
     cusparseHandle_t cusparse__;           // associated cuSparse handle
-	mtk::ozimmu::handle_t ozimmu_handle__; // associated ozIMMU handle
     #endif // MAGMA_HAVE_CUDA
 
     #ifdef MAGMA_HAVE_HIP
