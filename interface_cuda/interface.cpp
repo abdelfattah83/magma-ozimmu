@@ -1059,8 +1059,7 @@ magma_queue_create_internal(
 extern "C" void
 magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits)
 {
-    switch(nsplits):
-    {
+    switch(nsplits) {
         case  3: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_3;  break;
         case  4: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_4;  break;
         case  5: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_5;  break;
@@ -1167,7 +1166,7 @@ magma_queue_create_from_cuda_internal(
 
     mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
 	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
-	ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
+	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );

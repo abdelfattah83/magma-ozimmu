@@ -156,7 +156,7 @@ int main( int argc, char** argv)
                 magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
                 #if defined(MAGMA_HAVE_CUDA) && defined(PRECISION_d)
-                magma_dgemm( opts.transA, opts.transB, M, N, K,
+                magma_dgemm_ozimmu( opts.transA, opts.transB, M, N, K,
                              alpha, dA, ldda,
                                     dB, lddb,
                               beta,  dC, lddc,
