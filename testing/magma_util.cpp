@@ -488,6 +488,9 @@ void magma_opts::parse_opts( int argc, char** argv )
             magma_assert( this->ku >= 0,
                           "error: --ku %s is invalid; ensure ku >= 0.\n", argv[i] );
         }
+        else if ( strcmp("--oz", argv[i]) == 0 && i+1 < argc ) {
+            this->oz_nsplits = atoi( argv[++i] );
+        }
 
         // ----- boolean arguments
         // check results
