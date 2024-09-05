@@ -215,6 +215,7 @@ public:
     magma_int_t version;
     magma_int_t check;
     magma_int_t verbose;
+    magma_int_t oz_nsplits;
 
     // ranges for eigen/singular values (gesvdx, heevdx, ...)
     double      fraction_lo;

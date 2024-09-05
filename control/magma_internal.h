@@ -108,6 +108,8 @@ public:
 
     mtk::ozimmu::handle_t ozimmu_handle__; // associated ozIMMU handle
 
+    mtk::ozimmu::compute_mode_t ozimmu_compute_mode__; // compute mode for ozIMMU
+
     #endif
 
     // pointer array setup.

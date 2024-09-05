@@ -179,6 +179,8 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->version  = 1;
     this->verbose  = 0;
 
+    this->oz_nsplits  = 18;
+
     this->kl = 1;
     this->ku = 1;
 

@@ -1369,8 +1369,7 @@ magma_dgemm_ozimmu(
     const mtk::ozimmu::operation_t op_A = (transA == MagmaNoTrans) ? mtk::ozimmu::op_n : mtk::ozimmu::op_t;
     const mtk::ozimmu::operation_t op_B = (transB == MagmaNoTrans) ? mtk::ozimmu::op_n : mtk::ozimmu::op_t;
 
-    // specify compute mode
-    const mtk::ozimmu::compute_mode_t compute_mode = mtk::ozimmu::fp64_int8_18;
+    const mtk::ozimmu::compute_mode_t compute_mode = queue->ozimmu_compute_mode__;
     const mtk::ozimmu::element_kind_t element_kind = mtk::ozimmu::real;
 
     mtk::ozimmu::gemm(

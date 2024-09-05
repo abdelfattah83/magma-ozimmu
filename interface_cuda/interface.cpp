@@ -1029,6 +1029,9 @@ magma_queue_create_internal(
     check_xerror( stat2, func, file, line );
 
 	mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
+	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
+	ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
+
 #elif defined(MAGMA_HAVE_HIP)
 
     hipblasStatus_t stat;
@@ -1052,6 +1055,32 @@ magma_queue_create_internal(
     MAGMA_UNUSED( stat2 );
 }
 
+#ifdef MAGMA_HAVE_CUDA
+extern "C" void
+magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits)
+{
+    switch nsplits:
+    {
+        case  3: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_3;  break;
+        case  4: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_4;  break;
+        case  5: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_5;  break;
+        case  6: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_6;  break;
+        case  7: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_7;  break;
+        case  8: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_8;  break;
+        case  9: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_9;  break;
+        case 10: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_10; break;
+        case 11: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_11; break;
+        case 12: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_12; break;
+        case 13: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_13; break;
+        case 14: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_14; break;
+        case 15: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_15; break;
+        case 16: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_16; break;
+        case 17: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_17; break;
+        case 18: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; break;
+        default: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18;
+    }
+}
+#endif
 
 /***************************************************************************//**
     @fn magma_queue_create_from_cuda( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr )
@@ -1135,6 +1164,10 @@ magma_queue_create_from_cuda_internal(
     queue->cusparse__ = cusparse_handle;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
+	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
+	ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );

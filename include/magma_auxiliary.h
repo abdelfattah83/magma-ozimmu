@@ -289,6 +289,10 @@ magma_queue_create_from_cuda_internal(
     cusparseHandle_t cusparse,
     magma_queue_t*   queue_ptr,
     const char* func, const char* file, int line );
+
+void
+magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits);
+
 #endif
 
 

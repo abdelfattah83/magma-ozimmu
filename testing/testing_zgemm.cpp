@@ -21,6 +21,8 @@
 #include "magma_operators.h"
 #include "testings.h"
 
+#define PRECISION_z
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgemm
 */
@@ -142,6 +144,9 @@ int main( int argc, char** argv)
             double Bnorm = lapackf77_zlange( "F", &Bm, &Bn, hB, &ldb, work );
             double Cnorm = lapackf77_zlange( "F", &M,  &N,  hC, &ldc, work );
 
+            #ifdef MAGMA_HAVE_CUDA
+            magma_queue_set_ozimmu_nplits(opts.queue, opts.oz_nsplits);
+            #endif
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
                =================================================================== */
@@ -150,11 +155,19 @@ int main( int argc, char** argv)
 
                 magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
+                #if defined(MAGMA_HAVE_CUDA) && defined(PRECISION_d)
+                magma_dgemm( opts.transA, opts.transB, M, N, K,
+                             alpha, dA, ldda,
+                                    dB, lddb,
+                              beta,  dC, lddc,
+                              opts.queue );
+                #else
                 magmablas_zgemm( opts.transA, opts.transB, M, N, K,
                                  alpha, dA, ldda,
                                         dB, lddb,
                                  beta,  dC, lddc,
                                  opts.queue );
+                #endif
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
 
