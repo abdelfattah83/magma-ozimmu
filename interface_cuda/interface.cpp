@@ -1059,7 +1059,7 @@ magma_queue_create_internal(
 extern "C" void
 magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits)
 {
-    switch nsplits:
+    switch(nsplits):
     {
         case  3: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_3;  break;
         case  4: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_4;  break;
