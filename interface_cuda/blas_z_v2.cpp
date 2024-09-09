@@ -1343,6 +1343,10 @@ magma_zgemm(
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue )
 {
+    #ifdef PRECISION_d
+	if(m <= 0 || n <= 0 || k <= 0) return;
+    magma_dgemm_ozimmu(transA, transB, m, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc, queue);
+    #else
     cublasZgemm(
         queue->cublas_handle(),
         cublas_trans_const( transA ),
@@ -1351,6 +1355,7 @@ magma_zgemm(
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
                 (cuDoubleComplex*)dB, int(lddb),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 
 
