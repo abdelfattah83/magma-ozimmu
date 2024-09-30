@@ -1079,6 +1079,30 @@ magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits)
         default: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18;
     }
 }
+
+extern "C" magma_int_t
+magma_queue_get_ozimmu_nplits(magma_queue_t queue)
+{
+    switch(queue->ozimmu_compute_mode__) {
+        case mtk::ozimmu::fp64_int8_3 : return  3; break;
+        case mtk::ozimmu::fp64_int8_4 : return  4; break;
+        case mtk::ozimmu::fp64_int8_5 : return  5; break;
+        case mtk::ozimmu::fp64_int8_6 : return  6; break;
+        case mtk::ozimmu::fp64_int8_7 : return  7; break;
+        case mtk::ozimmu::fp64_int8_8 : return  8; break;
+        case mtk::ozimmu::fp64_int8_9 : return  9; break;
+        case mtk::ozimmu::fp64_int8_10: return 10; break;
+        case mtk::ozimmu::fp64_int8_11: return 11; break;
+        case mtk::ozimmu::fp64_int8_12: return 12; break;
+        case mtk::ozimmu::fp64_int8_13: return 13; break;
+        case mtk::ozimmu::fp64_int8_14: return 14; break;
+        case mtk::ozimmu::fp64_int8_15: return 15; break;
+        case mtk::ozimmu::fp64_int8_16: return 16; break;
+        case mtk::ozimmu::fp64_int8_17: return 17; break;
+        case mtk::ozimmu::fp64_int8_18: return 18; break;
+        default: return 0;
+    }
+}
 #endif
 
 /***************************************************************************//**

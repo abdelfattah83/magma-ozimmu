@@ -121,9 +121,9 @@ int main( int argc, char** argv)
             sizeB = ldb*Bn;
             sizeC = ldc*N;
 
-            TESTING_CHECK( magma_zmalloc_pinned( &hA,       lda*An ));
-            TESTING_CHECK( magma_zmalloc_pinned( &hB,       ldb*Bn ));
-            TESTING_CHECK( magma_zmalloc_pinned( &hC,       ldc*N  ));
+            TESTING_CHECK( magma_zmalloc_cpu( &hA,       lda*An ));
+            TESTING_CHECK( magma_zmalloc_cpu( &hB,       ldb*Bn ));
+            TESTING_CHECK( magma_zmalloc_cpu( &hC,       ldc*N  ));
             TESTING_CHECK( magma_zmalloc_pinned( &hCmagma,  ldc*N  ));
             TESTING_CHECK( magma_zmalloc_pinned( &hCdev,    ldc*N  ));
 
@@ -270,9 +270,9 @@ int main( int argc, char** argv)
                 #endif
             }
 
-            magma_free_pinned( hA );
-            magma_free_pinned( hB );
-            magma_free_pinned( hC );
+            magma_free_cpu( hA );
+            magma_free_cpu( hB );
+            magma_free_cpu( hC );
             magma_free_pinned( hCmagma  );
             magma_free_pinned( hCdev    );
 
