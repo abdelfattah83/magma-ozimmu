@@ -1028,9 +1028,9 @@ magma_queue_create_internal(
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
 
-	mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
+	mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_sync);
 	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
-	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
+	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_10; // most accurate version of ozIMMU-GEMM
 
 #elif defined(MAGMA_HAVE_HIP)
 
@@ -1166,7 +1166,7 @@ magma_queue_create_from_cuda_internal(
 
     mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
 	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
-	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
+	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_3; // most accurate version of ozIMMU-GEMM
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
@@ -1289,6 +1289,8 @@ magma_queue_destroy_internal(
 {
     if ( queue != NULL ) {
     #if defined(MAGMA_HAVE_CUDA)
+	    mtk::ozimmu::destroy(queue->ozimmu_handle__);
+
         if ( queue->cublas__ != NULL && (queue->own__ & own_cublas)) {
             cublasStatus_t stat = cublasDestroy( queue->cublas__ );
             check_xerror( stat, func, file, line );
@@ -1300,7 +1302,6 @@ magma_queue_destroy_internal(
             MAGMA_UNUSED( stat );
         }
 
-		mtk::ozimmu::destroy(queue->ozimmu_handle__);
     #elif defined(MAGMA_HAVE_HIP)
 
         if ( queue->hipblas__ != NULL && (queue->own__ & own_hipblas)) {
