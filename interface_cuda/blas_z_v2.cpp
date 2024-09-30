@@ -1343,7 +1343,7 @@ magma_zgemm(
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-#if 1
+#if 0
     #ifdef PRECISION_d
 	if(m <= 0 || n <= 0 || k <= 0) return;
     magma_dgemm_ozimmu(transA, transB, m, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc, queue);
