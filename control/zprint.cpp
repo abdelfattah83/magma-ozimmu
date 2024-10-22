@@ -45,7 +45,7 @@ void magma_zprint(
     const magmaDoubleComplex *A, magma_int_t lda )
 {
     #define A(i,j) (A + (i) + (j)*lda)
-    
+
     magma_int_t info = 0;
     if ( m < 0 )
         info = -1;
@@ -53,14 +53,14 @@ void magma_zprint(
         info = -2;
     else if ( lda < max(1,m) )
         info = -4;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
-    
+
     if ( m == 1 ) {
         printf( "[ " );
     }
@@ -78,9 +78,9 @@ void magma_zprint(
             }
             else {
                 #ifdef COMPLEX
-                printf( " %8.4f+%8.4fi", MAGMA_Z_REAL( *A(i,j) ), MAGMA_Z_IMAG( *A(i,j) ));
+                printf( " %8.4e+%8.4ei", MAGMA_Z_REAL( *A(i,j) ), MAGMA_Z_IMAG( *A(i,j) ));
                 #else
-                printf( " %8.4f", MAGMA_Z_REAL( *A(i,j) ));
+                printf( " %8.4e", MAGMA_Z_REAL( *A(i,j) ));
                 #endif
             }
         }
@@ -139,19 +139,19 @@ void magma_zprint_gpu(
         info = -2;
     else if ( ldda < max(1,m) )
         info = -4;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     magma_int_t lda = m;
     magmaDoubleComplex* A;
     magma_zmalloc_cpu( &A, lda*n );
 
     magma_zgetmatrix( m, n, dA, ldda, A, lda, queue );
-    
+
     magma_zprint( m, n, A, lda );
-    
+
     magma_free_cpu( A );
 }
