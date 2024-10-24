@@ -1190,7 +1190,7 @@ magma_queue_create_from_cuda_internal(
 
     mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_async);
 	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
-	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_3; // most accurate version of ozIMMU-GEMM
+	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
