@@ -278,7 +278,7 @@ int main( int argc, char** argv)
             double Cnorm = lapackf77_zlange( "I", &M,  &N,  hC, &ldc, work );
 
             #ifdef MAGMA_HAVE_CUDA
-            magma_queue_set_cuimma_nplits(opts.queue, opts.oz_nsplits);
+            magma_queue_set_ozimmu_nplits(opts.queue, opts.oz_nsplits);
             #endif
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
