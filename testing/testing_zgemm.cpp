@@ -392,14 +392,13 @@ int main( int argc, char** argv)
                 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
                     // use cuBLAS for R_ref (currently only with CUDA)
-                    if(opts.cond > 1) {
+                    #if 1
                         magma_error = magma_zmax_relative_error( M, N, hCdev, ldc, hCmagma, ldc );
-                    }
-                    else {
+                    #else
                         blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                         magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
                                 / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
-                    }
+                    #endif
 
                     bool okay = (magma_error < tol);
                     status += ! okay;
