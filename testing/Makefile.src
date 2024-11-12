@@ -21,6 +21,7 @@ hdr += \
 testing_src += \
 	$(cdir)/testing_zaxpy.cpp	\
 	$(cdir)/testing_zgemm.cpp	\
+	$(cdir)/testing_zgemm_max.cpp	\
 	$(cdir)/testing_zgemv.cpp	\
 	$(cdir)/testing_zhemm.cpp	\
 	$(cdir)/testing_zhemv.cpp	\
