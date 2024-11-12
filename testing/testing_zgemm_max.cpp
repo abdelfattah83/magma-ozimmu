@@ -23,7 +23,6 @@
 
 #define PRECISION_z
 
-#define COND_THRESHOLD (1)
 #define USE_MAX_REL_ERROR 1
 
 double magma_zmax_relative_error(
@@ -161,112 +160,11 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ithree, ISEED, &sizeB, hB );
             lapackf77_zlarnv( &ithree, ISEED, &sizeC, hC );
 
-            /* perform diagonal scaling */
+            /* fill in B with a constant value */
             #ifdef PRECISION_d
-            if(opts.cond > COND_THRESHOLD) {
-                bool notransA = (opts.transA == MagmaNoTrans) ? true : false;
-                bool notransB = (opts.transB == MagmaNoTrans) ? true : false;
-
-				// make A between [1,2]
-				#pragma omp parallel for
-				for(magma_int_t i = 0; i < sizeA; i++) {
-					hA[i] += 1.;
-				}
-
-				// make B between [1,2]
-				#pragma omp parallel for
-				for(magma_int_t i = 0; i < sizeB; i++) {
-					hB[i] += 1.;
-				}
-
-                double cond_sqrt = sqrt(opts.cond);
-                double* hD = NULL, *hVA = NULL, *hVB = NULL;
-                TESTING_CHECK( magma_dmalloc_cpu( &hD,  K ));
-                TESTING_CHECK( magma_dmalloc_cpu( &hVA, M ));
-                TESTING_CHECK( magma_dmalloc_cpu( &hVB, N ));
-                double scalar = pow( opts.cond, 1/double(K-1) );
-                hD[0] = 1 / cond_sqrt;
-                for(magma_int_t iD = 1; iD < K; iD++) {
-                    hD[iD] = hD[iD-1] * scalar;
-                }
-
-                if(M == 8 && N == 8 && K == 8) {
-                    magma_dprint(Am, An, hA, lda);
-                }
-                // scale columns/row of A for N/T
-                for(magma_int_t ik = 0; ik < K; ik++) {
-                    double* hAt      = ( notransA ) ? hA + lda * ik : hA + ik;
-                    magma_int_t incA = ( notransA ) ?             1 : lda;
-                    blasf77_dscal(&K, &hD[ik], hAt, &incA);
-                }
-
-                if(M == N && M == K) {
-                    // rotate rows/cols right/down of A for N/T
-                    for(magma_int_t i = 0; i < N; i++) {
-                        magma_int_t Vm   = ( notransA ) ? 1 : N;
-                        magma_int_t Vn   = ( notransA ) ? N : 1;
-                        magma_int_t vlda = Vm;
-
-                        double*     hA0 = ( notransA ) ? hA + i : hA + lda * i;
-                        double*     hA1 = hA0;
-                        magma_int_t Sm1 = ( notransA ) ? 1    : N-i;
-                        magma_int_t Sn1 = ( notransA ) ? N-i  : 1;
-
-                        double*     hA2 = ( notransA ) ? hA0 + (N-i) * lda : hA0 + (N-i);
-                        magma_int_t Sm2 = ( notransA ) ? 1 : i;
-                        magma_int_t Sn2 = ( notransA ) ? i : 1;
-
-                        lapackf77_dlacpy( "F", &Sm1, &Sn1, hA1, &lda,  hVA + i, &ione );
-                        lapackf77_dlacpy( "F", &Sm2, &Sn2, hA2, &lda,  hVA + 0, &ione );
-                        lapackf77_dlacpy( "F", &Vm,  &Vn,  hVA, &vlda, hA0,     &lda );
-                    }
-                }
-
-                if(M == 8 && N == 8 && K == 8) {
-                    magma_dprint(Am, An, hA, lda);
-                }
-
-                if(M == 8 && N == 8 && K == 8) {
-                    magma_dprint(Bm, Bn, hB, ldb);
-                }
-
-                // scale rows/cols of B for N/T
-                for(magma_int_t ik = 0; ik < K; ik++) {
-                    double* hBt      = ( notransB ) ? hB + ik : hB + ldb * ik ;
-                    magma_int_t incB = ( notransB ) ?     ldb : 1;
-                    double scal      = 1 / hD[ik];
-                    blasf77_dscal(&K, &scal, hBt, &incB);
-                }
-
-                if(M == N && M == K) {
-                    // rotate cols/rows down/right of B for N/T
-                    for(magma_int_t i = 0; i < N; i++) {
-                        magma_int_t Vm   = ( notransB ) ? N : 1;
-                        magma_int_t Vn   = ( notransB ) ? 1 : N;
-                        magma_int_t vldb = Vm;
-
-                        double*     hB0 = ( notransB ) ? hB + ldb * i : hB + i;
-                        double*     hB1 = hB0;
-                        magma_int_t Sm1 = ( notransB ) ? N-i  : 1;
-                        magma_int_t Sn1 = ( notransB ) ?   1  : N-i;
-
-                        double*     hB2 = ( notransB ) ? hB0 + (N-i) : hB0 + (N-i) * ldb;
-                        magma_int_t Sm2 = ( notransB ) ? i : 1;
-                        magma_int_t Sn2 = ( notransB ) ? 1 : i;
-
-                        lapackf77_dlacpy( "F", &Sm1, &Sn1, hB1, &ldb,  hVB + i, &ione );
-                        lapackf77_dlacpy( "F", &Sm2, &Sn2, hB2, &ldb,  hVB + 0, &ione );
-                        lapackf77_dlacpy( "F", &Vm,  &Vn,  hVB, &vldb, hB0,     &ldb );
-                    }
-                }
-
-                if(M == 8 && N == 8 && K == 8) {
-                    magma_dprint(Bm, Bn, hB, ldb);
-                }
-
-                magma_free_cpu( hD );
-                magma_free_cpu( hVA );
-                magma_free_cpu( hVB );
+            #pragma omp parallel for
+            for(magma_int_t s = 0; s < sizeB; s++) {
+                hB[s] =  1 - ldexp(1, -53);
             }
             #endif
 
