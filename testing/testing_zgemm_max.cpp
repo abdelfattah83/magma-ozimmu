@@ -23,7 +23,7 @@
 
 #define PRECISION_z
 
-#define USE_MAX_REL_ERROR 1
+#define USE_MAX_REL_ERROR 0
 
 double magma_zmax_relative_error(
         magma_int_t m, magma_int_t n,
@@ -161,12 +161,23 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ithree, ISEED, &sizeC, hC );
 
             /* fill in B with a constant value */
+            #if 1
             #ifdef PRECISION_d
             #pragma omp parallel for
-            for(magma_int_t s = 0; s < sizeB; s++) {
-                hB[s] =  1 - ldexp(1, -53);
+            for(magma_int_t s = 0; s < sizeA; s++) {
+                //hA[s] =  1 - ldexp(1, -53);
+                hB[s] =  1 - ldexp(1, -53); //nextafter(1.0, -1);
             }
+            //long long* x = (long long*)hB;
+            //printf("%llx \n", x[0]);
             #endif
+            #endif
+
+            if(M == 8 && N == 8 && K == 8) {
+                magma_zprint(Am, An, hA, lda);
+                magma_zprint(Bm, Bn, hB, ldb);
+            }
+
 
             magma_zsetmatrix( Am, An, hA, lda, dA(0,0), ldda, opts.queue );
             magma_zsetmatrix( Bm, Bn, hB, ldb, dB(0,0), lddb, opts.queue );
@@ -221,6 +232,11 @@ int main( int argc, char** argv)
             dev_perf = gflops / dev_time;
 
             magma_zgetmatrix( M, N, dC(0,0), lddc, hCdev, ldc, opts.queue );
+
+            if(M == 8 && N == 8 && K == 8) {
+                magma_zprint(M, N, hCmagma, ldc);
+                magma_zprint(M, N, hCdev,   ldc);
+            }
 
             /* =====================================================================
                Performs operation using CPU BLAS
