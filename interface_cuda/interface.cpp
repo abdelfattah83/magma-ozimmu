@@ -1030,7 +1030,7 @@ magma_queue_create_internal(
 
 	mtk::ozimmu::create(&queue->ozimmu_handle__, mtk::ozimmu::malloc_sync);
 	mtk::ozimmu::set_cuda_stream(queue->ozimmu_handle__, queue->stream__);
-	queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; // most accurate version of ozIMMU-GEMM
+	queue->ozimmu_compute_mode__ = mtk::ozimmu::dgemm; // std DGEMM by default
 
 #elif defined(MAGMA_HAVE_HIP)
 
@@ -1076,7 +1076,7 @@ magma_queue_set_ozimmu_nplits(magma_queue_t queue, magma_int_t nsplits)
         case 16: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_16; break;
         case 17: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_17; break;
         case 18: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18; break;
-        default: queue->ozimmu_compute_mode__ = mtk::ozimmu::fp64_int8_18;
+        default: queue->ozimmu_compute_mode__ = mtk::ozimmu::dgemm;
     }
 }
 

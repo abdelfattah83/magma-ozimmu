@@ -448,10 +448,10 @@ magma_zheevr_gpu(
 
 #ifdef USE_MAGMABLAS_HEMV
     magma_zhetrd2_gpu(uplo, n, dA, ldda, &rwork[indrd], &rwork[indre],
-                      &work[indtau], wA, ldwa, &work[indwk], llwork, dZ, lddz*n, &iinfo);
+                      &work[indtau], wA, ldwa, &work[indwk], llwork, dZ, lddz*n, &iinfo, 0);
 #else
     magma_zhetrd_gpu (uplo, n, dA, ldda, &rwork[indrd], &rwork[indre],
-                      &work[indtau], wA, ldwa, &work[indwk], llwork, &iinfo);
+                      &work[indtau], wA, ldwa, &work[indwk], llwork, &iinfo, 0);
 #endif
 
     lopt = n + (magma_int_t)MAGMA_Z_REAL(work[indwk]);
@@ -497,7 +497,7 @@ magma_zheevr_gpu(
         if (*info == 0 && wantz) {
             magma_zsetmatrix( n, *m, wZ, ldwz, dZ, lddz, queue );
             magma_zunmtr_gpu(MagmaLeft, uplo, MagmaNoTrans, n, *m, dA, ldda, &work[indtau],
-                             dZ, lddz, wA, ldwa, &iinfo);
+                             dZ, lddz, wA, ldwa, &iinfo, 0);
         }
     }
 
@@ -517,7 +517,7 @@ magma_zheevr_gpu(
            form to eigenvectors returned by ZSTEIN. */
         magma_zsetmatrix( n, *m, wZ, ldwz, dZ, lddz, queue );
         magma_zunmtr_gpu(MagmaLeft, uplo, MagmaNoTrans, n, *m, dA, ldda, &work[indtau],
-                         dZ, lddz, wA, ldwa, &iinfo);
+                         dZ, lddz, wA, ldwa, &iinfo, 0);
     }
 
     /* If matrix was scaled, then rescale eigenvalues appropriately. */

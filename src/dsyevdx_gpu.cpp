@@ -257,7 +257,7 @@ magma_dsyevdx_gpu(
         lwmin  = 2*n + n*nb;
         liwmin = 1;
     }
-    
+
     work[0]  = magma_dmake_lwork( lwmin );
     iwork[0] = liwmin;
 
@@ -351,11 +351,11 @@ magma_dsyevdx_gpu(
 #ifdef FAST_SYMV
     magma_dsytrd2_gpu( uplo, n, dA, ldda, w, &work[inde],
                        &work[indtau], wA, ldwa, &work[indwrk], llwork,
-                       dwork, ldwork, &iinfo );
+                       dwork, ldwork, &iinfo, 0);
 #else
     magma_dsytrd_gpu(  uplo, n, dA, ldda, w, &work[inde],
                        &work[indtau], wA, ldwa, &work[indwrk], llwork,
-                       &iinfo );
+                       &iinfo, 0);
 #endif
 
     timer_stop( time );
@@ -377,7 +377,7 @@ magma_dsyevdx_gpu(
 
         magma_dstedx( range, n, vl, vu, il, iu, w, &work[inde],
                       &work[indwrk], n, &work[indwk2],
-                      llwrk2, iwork, liwork, dwork, info );
+                      llwrk2, iwork, liwork, dwork, info, 0);
 
         timer_stop( time );
         timer_printf( "time dstedx = %6.2f\n", time );
@@ -388,7 +388,7 @@ magma_dsyevdx_gpu(
         magma_dsetmatrix( n, *mout, &work[indwrk + n* (il-1) ], n, dwork, lddc, queue );
 
         magma_dormtr_gpu( MagmaLeft, uplo, MagmaNoTrans, n, *mout, dA, ldda, &work[indtau],
-                          dwork, lddc, wA, ldwa, &iinfo );
+                          dwork, lddc, wA, ldwa, &iinfo, 0);
 
         magma_dcopymatrix( n, *mout, dwork, lddc, dA, ldda, queue );
 

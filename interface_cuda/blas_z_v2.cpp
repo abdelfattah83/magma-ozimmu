@@ -1343,13 +1343,30 @@ magma_zgemm(
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-#if 0
     #ifdef PRECISION_d
-    magma_int_t nsplits = 8;
 	if(m <= 0 || n <= 0 || k <= 0) return;
-	magma_queue_set_ozimmu_nplits(queue, nsplits);
-    magma_dgemm_ozimmu(transA, transB, m, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc, queue);
-    #else
+    magma_int_t nsplits = magma_queue_get_ozimmu_nplits(queue);
+	if( nsplits < 3 || nsplits > 18 ) {
+	    nsplits = 0;
+	}
+
+	if( nsplits == 0 ) {
+	    //printf("splits = %d, std. dgemm\n", nsplits);
+        cublasDgemm(
+            queue->cublas_handle(),
+            cublas_trans_const( transA ),
+            cublas_trans_const( transB ),
+            int(m), int(n), int(k),
+            (double*)&alpha, (double*)dA, int(ldda),
+                             (double*)dB, int(lddb),
+            (double*)&beta,  (double*)dC, int(lddc) );
+	}
+	else {
+	    //printf("splits = %d, emulated dgemm\n", nsplits);
+	    magma_dgemm_ozimmu(transA, transB, m, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc, queue);
+    }
+
+	#else
     cublasZgemm(
         queue->cublas_handle(),
         cublas_trans_const( transA ),
@@ -1359,16 +1376,6 @@ magma_zgemm(
                 (cuDoubleComplex*)dB, int(lddb),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
     #endif
-#else
-    cublasZgemm(
-        queue->cublas_handle(),
-        cublas_trans_const( transA ),
-        cublas_trans_const( transB ),
-        int(m), int(n), int(k),
-        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
-                (cuDoubleComplex*)dB, int(lddb),
-        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
-#endif
 }
 
 

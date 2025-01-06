@@ -361,10 +361,10 @@ magma_zheevx_gpu(
 
 #ifdef USE_MAGMABLAS_HEMV
     magma_zhetrd2_gpu(uplo, n, dA, ldda, &rwork[indd], &rwork[inde],
-                      &work[indtau], wA, ldwa, &work[indwrk], llwork, dZ, lddz*n, &iinfo);
+                      &work[indtau], wA, ldwa, &work[indwrk], llwork, dZ, lddz*n, &iinfo, 0);
 #else
     magma_zhetrd_gpu (uplo, n, dA, ldda, &rwork[indd], &rwork[inde],
-                      &work[indtau], wA, ldwa, &work[indwrk], llwork, &iinfo);
+                      &work[indtau], wA, ldwa, &work[indwrk], llwork, &iinfo, 0);
 #endif
 
     lopt = n + (magma_int_t)MAGMA_Z_REAL(work[indwrk]);
@@ -422,7 +422,7 @@ magma_zheevx_gpu(
             /* Apply unitary matrix used in reduction to tridiagonal
                form to eigenvectors returned by ZSTEIN. */
             magma_zunmtr_gpu(MagmaLeft, uplo, MagmaNoTrans, n, *m, dA, ldda, &work[indtau],
-                             dZ, lddz, wA, ldwa, &iinfo);
+                             dZ, lddz, wA, ldwa, &iinfo, 0);
         }
     }
     /* If matrix was scaled, then rescale eigenvalues appropriately. */

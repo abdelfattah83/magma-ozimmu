@@ -90,6 +90,8 @@ int main( int argc, char** argv)
     magma_opts opts;
     opts.parse_opts( argc, argv );
 
+    magma_int_t use_max_rel_error = (opts.check == 2);
+
     // Allow 3*eps; complex needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
@@ -278,9 +280,6 @@ int main( int argc, char** argv)
             double Bnorm = lapackf77_zlange( "I", &Bm, &Bn, hB, &ldb, work );
             double Cnorm = lapackf77_zlange( "I", &M,  &N,  hC, &ldc, work );
 
-            #ifdef MAGMA_HAVE_CUDA
-            magma_queue_set_ozimmu_nplits(opts.queue, opts.oz_nsplits);
-            #endif
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
                =================================================================== */
@@ -289,12 +288,13 @@ int main( int argc, char** argv)
 
                 magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
+
                 #if defined(MAGMA_HAVE_CUDA) && defined(PRECISION_d)
-                magma_dgemm_ozimmu( opts.transA, opts.transB, M, N, K,
-                             alpha, dA, ldda,
-                                    dB, lddb,
-                              beta,  dC, lddc,
-                              opts.queue );
+                magma_queue_set_ozimmu_nplits(opts.queue, opts.oz_nsplits);
+                magma_zgemm( opts.transA, opts.transB, M, N, K,
+                         alpha, dA(0,0), ldda,
+                                dB(0,0), lddb,
+                         beta,  dC(0,0), lddc, opts.queue );
                 #else
                 magmablas_zgemm( opts.transA, opts.transB, M, N, K,
                                  alpha, dA, ldda,
@@ -315,6 +315,7 @@ int main( int argc, char** argv)
 
             magma_flush_cache( opts.cache );
             dev_time = magma_sync_wtime( opts.queue );
+            magma_queue_set_ozimmu_nplits(opts.queue, 0);
             magma_zgemm( opts.transA, opts.transB, M, N, K,
                          alpha, dA(0,0), ldda,
                                 dB(0,0), lddb,
@@ -352,22 +353,24 @@ int main( int argc, char** argv)
                 // We allow a slightly looser tolerance.
 
                 // use LAPACK for R_ref
-                #if USE_MAX_REL_ERROR
-                dev_error = magma_zmax_relative_error( M, N, hC, ldc, hCdev, ldc );
-                #else
+                if(use_max_rel_error == 1) {
+                    dev_error = magma_zmax_relative_error( M, N, hC, ldc, hCdev, ldc );
+                }
+                else {
                     blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                     dev_error = lapackf77_zlange( "F", &M, &N, hCdev, &ldc, work )
-                                / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
-                #endif
+                                    / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
+                }
 
                 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
-                    #if USE_MAX_REL_ERROR
-                    magma_error = magma_zmax_relative_error( M, N, hC, ldc, hCmagma, ldc );
-                    #else
-                    blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCmagma, &ione );
-                    magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
-                            / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
-                    #endif
+                    if(use_max_rel_error == 1) {
+                        magma_error = magma_zmax_relative_error( M, N, hC, ldc, hCmagma, ldc );
+                    }
+                    else {
+                        blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCmagma, &ione );
+                        magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
+                                    / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
+                    }
 
                     bool okay = (magma_error < tol && dev_error < tol);
                     status += ! okay;
@@ -393,13 +396,14 @@ int main( int argc, char** argv)
                 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
                     // use cuBLAS for R_ref (currently only with CUDA)
-                    #if USE_MAX_REL_ERROR
+                    if(use_max_rel_error == 1) {
                         magma_error = magma_zmax_relative_error( M, N, hCdev, ldc, hCmagma, ldc );
-                    #else
+                    }
+                    else {
                         blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                         magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
-                                / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
-                    #endif
+                                    / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
+                    }
 
                     bool okay = (magma_error < tol);
                     status += ! okay;
