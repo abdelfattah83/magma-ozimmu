@@ -22,6 +22,8 @@
 
 #define COND_THRESHOLD (1)
 
+#define
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgesv_gpu
 */
@@ -70,13 +72,13 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc( &d_B, lddb*nrhs ));
 
             /* Initialize the matrices */
-            sizeA = lda*N;
             sizeB = ldb*nrhs;
             magma_generate_matrix( opts, N, N, h_A, lda );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
 
             /* perform diagonal scaling */
             #ifdef PRECISION_d
+            sizeA = lda*N;
             if(opts.cond > COND_THRESHOLD) {
                 bool notransA = (opts.transA == MagmaNoTrans) ? true : false;
 
