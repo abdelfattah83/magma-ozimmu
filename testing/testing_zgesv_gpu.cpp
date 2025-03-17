@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     magmaDoubleComplex *h_A, *h_B, *h_X;
     magmaDoubleComplex_ptr d_A, d_B;
     magma_int_t *ipiv;
-    magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeB;
+    magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeB;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
@@ -72,13 +72,18 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc( &d_B, lddb*nrhs ));
 
             /* Initialize the matrices */
+            magma_int_t sizeA = lda*N;
             sizeB = ldb*nrhs;
-            magma_generate_matrix( opts, N, N, h_A, lda );
+
+            //magma_generate_matrix( opts, N, N, h_A, lda );
+            lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
 
             /* perform diagonal scaling */
             #ifdef PRECISION_d
-            sizeA = lda*N;
+            magma_int_t M = N;
+            magma_int_t K = N;
+            magmaDoubleComplex *hA = h_A;
             if(opts.cond > COND_THRESHOLD) {
                 bool notransA = (opts.transA == MagmaNoTrans) ? true : false;
 
@@ -99,7 +104,7 @@ int main(int argc, char **argv)
                 }
 
                 if(N == 8) {
-                    magma_dprint(Am, An, hA, lda);
+                    magma_dprint(N, N, hA, lda);
                 }
 
                 // scale columns/row of A for N/T
@@ -109,7 +114,7 @@ int main(int argc, char **argv)
                     blasf77_dscal(&K, &hD[ik], hAt, &incA);
                 }
 
-                if( 1 ) {
+                if( 0 ) {
                     // rotate rows/cols right/down of A for N/T
                     for(magma_int_t i = 0; i < N; i++) {
                         magma_int_t Vm   = ( notransA ) ? 1 : N;
@@ -132,7 +137,7 @@ int main(int argc, char **argv)
                 }
 
                 if(M == 8 && N == 8 && K == 8) {
-                    magma_dprint(Am, An, hA, lda);
+                    magma_dprint(N, N, hA, lda);
                 }
 
                 magma_free_cpu( hD );
