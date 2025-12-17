@@ -41,6 +41,8 @@ algorithm is used. Also included is MAGMA BLAS, a complementary to CUBLAS routin
 - A. Abdelfattah (UT Knoxville)
 - H. Anzt        (UT Knoxville)
 - M. Baboulin    (U Paris-Sud)
+- N. Beams       (UT Knoxville)
+- C. Brown       (UT Knoxville)
 - C. Cao         (UT Knoxville)
 - J. Demmel      (UC Berkeley)
 - T. Dong        (UT Knoxville)
@@ -71,7 +73,7 @@ either in your `.cshrc/.bashrc` file, or in the `make.inc` file itself.
 
 #### CUDA
 
-All the `make.inc` files assume `$CUDADIR` is set in your environment.
+All the `make.inc` files assume `\$CUDADIR` is set in your environment.
 For bash (sh), put in `~/.bashrc` (with your system's path):
 
     export CUDADIR=/usr/loca/cuda
@@ -80,11 +82,24 @@ For csh/tcsh, put in `~/.cshrc`:
 
     setenv CUDADIR /usr/local/cuda
 
-MAGMA is tested with CUDA >= 7.5. Some functionality requires a newer version.
+#### AMD Optimizing CPU Libraries (AOCL) / BLIS & FLAME
+
+AOCL has adopted the BLIS and libFLAME libraries. These may be installed
+in separate directories. Set `\$BLIS_DIR` and `\$FLAME_DIR` in your
+environment or make.inc file.
+For bash (sh), put in ~/.bashrc (with your system's paths):
+
+    export BLIS_DIR=/opt/blis
+    export FLAME_DIR=/opt/libflame
+
+For csh/tcsh, put in ~/.cshrc:
+
+    setenv BLIS_DIR  /opt/blis
+    setenv FLAME_DIR /opt/libflame
 
 #### Intel MKL
 
-The MKL `make.inc` files assume `$MKLROOT` is set in your environment. To set it,
+The MKL `make.inc` files assume `\$MKLROOT` is set in your environment. To set it,
 for bash (sh), put in ~/.bashrc (with your system's path):
 
     source /opt/intel/bin/compilervars.sh intel64
@@ -93,27 +108,11 @@ For csh/tcsh, put in ~/.cshrc:
 
     source /opt/intel/bin/compilervars.csh intel64
 
-MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
-other versions may work.
-
-#### AMD ACML
-
-The ACML `make.inc` file assumes `$ACMLDIR` is set in your environment.
-For bash (sh), put in ~/.bashrc (with your system's path):
-
-    export ACMLDIR=/opt/acml-5.3.1
-
-For csh/tcsh, put in ~/.cshrc:
-
-    setenv ACMLDIR  /opt/acml-5.3.1
-
-MAGMA is tested with ACML 5.3.1; other versions may work.
-See comments in `make.inc.acml` regarding ACML 4;
-a couple testers fail to compile with ACML 4.
+MAGMA is tested with both LP64 and ILP64.
 
 #### ATLAS
 
-The ATLAS `make.inc` file assumes `$ATLASDIR` and `$LAPACKDIR` are set in your environment.
+The ATLAS `make.inc` file assumes `\$ATLASDIR` and `\$LAPACKDIR` are set in your environment.
 If not installed, install LAPACK from http://www.netlib.org/lapack/
 For bash (sh), put in ~/.bashrc (with your system's path):
 
@@ -127,7 +126,7 @@ For csh/tcsh, put in ~/.cshrc:
 
 #### OpenBLAS
 
-The OpenBLAS `make.inc` file assumes `$OPENBLASDIR` is set in your environment.
+The OpenBLAS `make.inc` file assumes `\$OPENBLASDIR` is set in your environment.
 For bash (sh), put in ~/.bashrc (with your system's path):
 
     export OPENBLASDIR=/opt/openblas
@@ -135,18 +134,6 @@ For bash (sh), put in ~/.bashrc (with your system's path):
 For csh/tcsh, put in ~/.cshrc:
 
     setenv OPENBLASDIR /opt/openblas
-
-Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
-
-#### MacOS Accelerate (previously Veclib)
-
-Unfortunately, the MacOS Accelerate framework uses an old ABI for BLAS and
-LAPACK, where single precision functions -- such as `sdot`, `cdot`, `slange`,
-and `clange` -- return a double precision result. This makes them incompatibile
-with our C/C++ headers and with the Fortran code used in our testers. The fix is
-to substitute reference implementations of these functions, found in
-`magma/blas_fix`. Setting `blas_fix = 1` in `make.inc` will compile these into
-`magma/lib/libblas_fix.a`, with which your application should link.
 
 
 Linking to BLAS
@@ -162,12 +149,19 @@ Set `-DADD_`, `-DUPCASE`, or `-DNOCHANGE`, respectively, in all FLAGS in your
 `make.inc` file to select the appropriate one. Use `nm` to examine your BLAS
 library:
 
-    acml-5.3.1/gfortran64_mp/lib> nm libacml_mp.a | grep -i 'T.*dgemm'
-    0000000000000000 T dgemm
-    00000000000004e0 T dgemm_
+    sh methane lib> nm libopenblas.so | grep -i dsyr2k
+    000000000017ee50 T cblas_dsyr2k
+    000000000017c8b0 T dsyr2k_           # Note this line
+    00000000001fa690 T dsyr2k_LN
+    00000000001fb2e0 T dsyr2k_LT
+    00000000001f8f70 T dsyr2k_UN
+    00000000001f9b70 T dsyr2k_UT
+    00000000001fcab0 T dsyr2k_kernel_L
+    00000000001fc750 T dsyr2k_kernel_U
 
-In this case, it shows that either `-DADD_ (dgemm_)` or `-DNOCHANGE (dgemm)`
-should work. The default in all make.inc files is `-DADD_`.
+In this case, it shows that `-DADD_ (dsyr2k_)` should work.
+The default in all example make.inc files is `-DADD_`,
+except for IBM ESSL, which uses `-DNOCHANGE`.
 
 
 Compile-time options
@@ -180,16 +174,6 @@ using the `-D` compiler flag, e.g., `-DMAGMA_WITH_MKL` in CFLAGS.
 
     If linked with MKL, allows MAGMA to get MKL's version and
     set MKL's number of threads.
-
-- `MAGMA_WITH_ACML`
-
-    If linked with ACML 5 or later, allows MAGMA to get ACML's version.
-    ACML's number of threads are set via OpenMP.
-
-- `MAGMA_NO_V1`
-
-    Disables MAGMA v1.x compatability. Skips compiling non-queue versions
-    of MAGMA BLAS routines, and simplifies magma_init().
 
 - `MAGMA_NOAFFINITY`
 
@@ -218,16 +202,15 @@ Run-time options
 --------------------------------------------------------------------------------
 These variables control MAGMA, BLAS, and LAPACK run-time behavior.
 
-- `$MAGMA_NUM_GPUS`
+- `\$MAGMA_NUM_GPUS`
 
-For multi-GPU functions, set `$MAGMA_NUM_GPUS` to the number of GPUs to use.
+For multi-GPU functions, set `\$MAGMA_NUM_GPUS` to the number of GPUs to use.
 
-- `$OMP_NUM_THREADS`
-- `$MKL_NUM_THREADS`
-- `$VECLIB_MAXIMUM_THREADS`
+- `\$OMP_NUM_THREADS`
+- `\$MKL_NUM_THREADS`
 
-    For multi-core BLAS libraries, set `$OMP_NUM_THREADS` or `$MKL_NUM_THREADS`
-    or `$VECLIB_MAXIMUM_THREADS` to the number of CPU threads, depending on your
+    For multi-core BLAS libraries, set `\$OMP_NUM_THREADS` or `\$MKL_NUM_THREADS`
+    to the number of CPU threads, depending on your
     BLAS library. See the documentation for your BLAS and LAPACK libraries.
 
 
@@ -299,9 +282,9 @@ To install libraries and include files in a given prefix, run:
 
 The default prefix is `/usr/local/magma`. You can also set `prefix` in `make.inc`.
 This installs
-MAGMA libraries in `${prefix}/lib`,
-MAGMA header files in `${prefix}/include`, and
-`${prefix}/lib/pkgconfig/magma.pc` for `pkg-config`.
+MAGMA libraries in `\${prefix}/lib`,
+MAGMA header files in `\${prefix}/include`, and
+`\${prefix}/lib/pkgconfig/magma.pc` for `pkg-config`.
 
 
 Tuning
@@ -309,7 +292,7 @@ Tuning
 You can modify the blocking factors for the algorithms of
 interest in `control/get_nb.cpp`.
 
-Performance results are included in `results/vA.B.C/cudaX.Y-zzz/*.txt`
+Performance results are included in `results/vA.B.C/cudaX.Y-zzz/\*.txt`
 for MAGMA version A.B.C, CUDA version X.Y, and GPU zzz.
 
 
@@ -435,24 +418,21 @@ routines call several computational routines to solve the entire problem.
 Here, curly braces { } group similar routines.
 Starred * routines are not yet implemented in MAGMA.
 
-Name                                                                                |  Description
------------                                                                         |  -----------
-: **Triangular factorizations** :                                                   |  **Description**
-\ref magma_getrf "getrf", \ref magma_potrf "potrf", \ref magma_hetrf "hetrf"        |  triangular factorization (LU, Cholesky, Indefinite)
-\ref magma_getrs "getrs", \ref magma_potrs "potrs", \ref magma_hetrs "hetrs"        |  triangular forward and back solve
-\ref magma_getri "getri", \ref magma_potri "potri"                                  |  triangular inverse
-\ref magma_getf2 "getf2", \ref magma_potf2 "potf2"                                  |  triangular panel factorization (BLAS-2)
-. **Orthogonal factorizations**                                                     |  **Description**
-ge{\ref magma_geqrf "qrf", \ref magma_geqlf "qlf",  \ref magma_gelqf "lqf",  rqf*}  |  QR, QL, LQ, RQ factorization
-\ref magma_geqp3 "geqp3"                                                            |  QR with column pivoting (BLAS-3)
-or{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (real)
-un{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (complex)
-or{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (real)
-un{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (complex)
-. **Eigenvalue & SVD**                                                              |  **Description**
-\ref magma_gehrd "gehrd"                                                            |  Hessenberg  reduction (in geev)
-\ref magma_hetrd "sytrd/hetrd"                                                      |  tridiagonal reduction (in syev, heev)
-\ref magma_gebrd "gebrd"                                                            |  bidiagonal  reduction (in gesvd)
+|           | Name                            |  Description                        |
+|:---------:|:--------------------------------|:------------------------------------|
+| Triangular factorizations | \ref magma_getrf "getrf", \ref magma_potrf "potrf", \ref magma_hetrf "hetrf"        |  triangular factorization (LU, Cholesky, Indefinite) |
+| ^ | \ref magma_getrs "getrs", \ref magma_potrs "potrs", \ref magma_hetrs "hetrs"        |  triangular forward and back solve |
+| ^ | \ref magma_getri "getri", \ref magma_potri "potri"                                  |  triangular inverse |
+| ^ | \ref magma_getf2 "getf2", \ref magma_potf2 "potf2"                                  |  triangular panel factorization (BLAS-2) |
+| Orthogonal factorizations | ge{\ref magma_geqrf "qrf", \ref magma_geqlf "qlf",  \ref magma_gelqf "lqf",  rqf*}  |  QR, QL, LQ, RQ factorization |
+| ^ | \ref magma_geqp3 "geqp3"                                                            |  QR with column pivoting (BLAS-3) |
+| ^ | or{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (real) |
+| ^ | un{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (complex) |
+| ^ | or{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (real) |
+| ^ | un{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (complex) |
+| Eigenvalue & SVD          | \ref magma_gehrd "gehrd"                                    |  Hessenberg  reduction (in geev) |
+| ^ | \ref magma_hetrd "sytrd/hetrd"                                                      |  tridiagonal reduction (in syev, heev) |
+| ^ | \ref magma_gebrd "gebrd"                                                            |  bidiagonal  reduction (in gesvd) |
 
 There are many other computational routines that are mostly internal to
 MAGMA and LAPACK, and not commonly called by end users.

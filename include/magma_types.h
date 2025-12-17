@@ -16,6 +16,9 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifndef __cplusplus
+#include<stdbool.h>
+#endif
 
 // for backwards compatability
 #ifdef HAVE_clAmdBlas
@@ -44,6 +47,20 @@
   #endif
 #endif
 
+// Define a deprecation macro depending on compiler and C++/C version
+#if (__cplusplus >= 201402L) || (__STDC_VERSION__ >= 202311L) || ((__GNUC__ > 9) && !defined(__INTEL_COMPILER))
+    #define MAGMA_DEPRECATE(MSG) [[deprecated(MSG)]]
+#elif __GNUC__
+    #define MAGMA_DEPRECATE(MSG) __attribute__((deprecated(MSG)))
+#elif __clang__
+  #if __has_extension(attribute_deprecated_with_message)
+    #define MAGMA_DEPRECATE(MSG) __attribute__((deprecated(MSG)))
+  #else
+    #define MAGMA_DEPRECATE(MSG)
+  #endif
+#else
+    #define MAGMA_DEPRECATE(MSG)
+#endif
 
 // =============================================================================
 // To use int64_t, link with mkl_intel_ilp64 or similar (instead of mkl_intel_lp64).
@@ -214,8 +231,6 @@ typedef double real_Double_t;
 
     /* double complex */
 
-    //typedef hipblasDoubleComplex magmaDoubleComplex;
-
     /* simple double complex definition that should be binary compatible with hipBLAS */
     typedef struct {
 
@@ -261,9 +276,6 @@ typedef double real_Double_t;
     }
 
     /* float complex */
-
-    //typedef hipComplex magmaFloatComplex;
-    //typedef hipblasComplex magmaFloatComplex;
 
     /* basic definition of float complex that should be binary compatible with hipBLAS */
     typedef struct {
@@ -514,7 +526,7 @@ float  magma_cabsf( magmaFloatComplex  x );
 
 // -----------------------------------------------------------------------------
 #define MAGMA_VERSION_MAJOR 2
-#define MAGMA_VERSION_MINOR 8
+#define MAGMA_VERSION_MINOR 9
 #define MAGMA_VERSION_MICRO 0
 
 // stage is "svn", "beta#", "rc#" (release candidate), or blank ("") for final release
@@ -695,6 +707,12 @@ typedef enum {
     MagmaHybrid        = 701,
     MagmaNative        = 702
 } magma_mode_t;
+
+typedef enum {
+    MagmaAscending     = 751,
+    MagmaDescending    = 752
+} magma_sort_t;
+
 // -----------------------------------------------------------------------------
 // sparse
 typedef enum {

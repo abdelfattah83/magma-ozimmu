@@ -64,8 +64,6 @@ testing_src += \
 	$(cdir)/testing_parse_opts.cpp	\
 	$(cdir)/testing_zgenerate.cpp	\
 
-	#$(cdir)/testing_veclib.cpp	\
-
 # ----------
 # Cholesky, GPU interface
 testing_src += \
@@ -150,6 +148,7 @@ testing_src += \
 	$(cdir)/testing_zunmlq.cpp	\
 	$(cdir)/testing_zunmql.cpp	\
 	$(cdir)/testing_zunmqr.cpp	\
+	$(cdir)/testing_zunmqr_batched.cpp	\
 
 # ----------
 # symmetric eigenvalues, GPU interface
@@ -234,6 +233,7 @@ testing_src += \
 	\
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
 	$(cdir)/testing_zgetrf_vbatched.cpp	\
+	$(cdir)/testing_zgetrf_nopiv_vbatched.cpp	\
 
 # ----------
 # half precision files
@@ -241,6 +241,10 @@ testing_src += \
 	$(cdir)/testing_hgemm.cpp	        \
 	$(cdir)/testing_hgemm_batched.cpp	\
 	$(cdir)/testing_sgemm_fp16.cpp	\
+
+# ----------
+testing_src += \
+	$(cdir)/testing_dsort_batched.cpp	        \
 
 # ----------
 ifeq ($(FORT), pgfortran)

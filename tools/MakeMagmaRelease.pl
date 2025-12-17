@@ -35,11 +35,7 @@ my @files2delete = qw(
     sparse/python
 
     sparse/testing/testing_zpardiso.cpp
-    sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp
-    sparse/testing/testing_zsolver_energy.cpp
-
-    sparse/blas/zilut.cpp
 
     testing/*.txt
     testing/fortran2.cpp
@@ -103,13 +99,11 @@ sub MakeRelease
     );
     $year += 1900;
 
-    # Require recent doxygen, say >= 1.8.
-    # ICL machines have ancient versions of doxygen (1.4 and 1.6);
-    # the docs don't work at all.
+    # Require recent doxygen, say >= 1.12.
     my $doxygen = `doxygen --version`;
     chomp $doxygen;
     my($v) = $doxygen =~ m/^(\d+\.\d+)\.\d+$/;
-    my $doxygen_require = 1.8;
+    my $doxygen_require = 1.12;
     if ( $v < $doxygen_require ) {
         print <<EOT;
 =====================================================================
@@ -130,7 +124,7 @@ EOT
     }
 
     myCmd("mkdir $RELEASE_PATH");
-    
+
     # Save current directory
     my $dir = `pwd`;
     chomp $dir;
@@ -222,9 +216,9 @@ EOT
 
     # Generate cuda files
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
-    
+
     # Compile the documentation
-    print "Compile the documentation\n";                                                                                                     
+    print "Compile the documentation\n";
     myCmd("make docs");
 
     myCmd("make -j generate");

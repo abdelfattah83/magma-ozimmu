@@ -87,7 +87,7 @@ FPIC        ?= -fPIC
 
 # now, generate our flags
 CFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c99
-CXXFLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++11
+CXXFLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++14
 FFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     ?=     $(FPIC)                       -fopenmp
@@ -105,11 +105,6 @@ prefix     ?= /usr/local/magma
 
 # ------------------------------------------------------------------------------
 # MAGMA-specific programs & flags
-
-ifeq ($(blas_fix),1)
-    # prepend -lblas_fix to LIB (it must come before LAPACK library/framework)
-    LIB := -lblas_fix $(LIB)
-endif
 
 LIBS       = $(LIBDIR) $(LIB)
 
@@ -152,18 +147,21 @@ ifeq ($(BACKEND),cuda)
 	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_80
 	endif
+	ifneq ($(findstring Ada, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_89
+	endif
 	ifneq ($(findstring Hopper, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_90
+		CUDA_ARCH_ += sm_90a
 	endif
 	ifneq ($(findstring Blackwell, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_100
+		CUDA_ARCH_ += sm_120
 	endif
-
-
-	# Remember to add to CMakeLists.txt too!
+	# Remember to add new architectures to CMakeLists.txt too!
 
 	# Next, add compile options for specific smXX
-	# sm_xx is binary, compute_xx is PTX for forward compatability
+	# sm_xx is binary, compute_xx is PTX for forward compatibility
 	# MIN_ARCH is lowest requested version
 	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
 	# NV_SM    accumulates sm_xx for all requested versions
@@ -172,7 +170,7 @@ ifeq ($(BACKEND),cuda)
 	# See also $(info compile for ...) in Makefile
 
 
-    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere Hopper Blackwell, $(CUDA_ARCH_))
+    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere Ada Hopper Blackwell, $(CUDA_ARCH_))
     ifneq ($(CUDA_ARCH_UNKNOWN_),)
         $(error ERROR: unknown `$(CUDA_ARCH_UNKNOWN_)` in GPU_TARGET)
     endif
@@ -191,7 +189,7 @@ ifeq ($(BACKEND),cuda)
 
     # Check for empty
     ifeq ($(NV_SM),)
-        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, Blackwell, or valid sm_XX from nvcc -h)
+        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Ada, Hopper, Blackwell, or valid sm_XX from nvcc -h)
     else
         # Get last option (last 2 words) of nv_compute.
         nwords := $(words $(NV_COMP))
@@ -208,7 +206,7 @@ ifeq ($(BACKEND),cuda)
     CUDA_ARCH := $(SMS)
     CUDA_ARCH_MIN := $(word 1, $(SMS))0
     ifeq ($(CUDA_ARCH_MIN),)
-        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, Blackwell, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Ada, Hopper, Blackwell, or valid sm_[0-9][0-9]. Please edit your make.inc file)
     endif
 else ifeq ($(BACKEND),hip)
 
@@ -263,7 +261,7 @@ else ifeq ($(BACKEND),hip)
 
     ## Suggestion by Mark (from SLATE)
     # Valid architecture numbers
-    # TODO: remove veryold ones?
+    # TODO: remove very old ones?
     VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 940 941 942 90c 1010 1011 1012 1030 1031 1032 1033
 
 
@@ -323,7 +321,6 @@ libsparse_dynamic_src:=
 sparse_testing_src   :=
 
 subdirs := \
-	blas_fix            \
 	control             \
 	include             \
 	src                 \
@@ -384,7 +381,6 @@ ifeq ($(FORT),)
 endif
 
 libmagma_obj       := $(addsuffix .$(o_ext), $(basename $(libmagma_all)))
-libblas_fix_obj    := $(addsuffix .$(o_ext), $(basename $(libblas_fix_src)))
 libtest_obj        := $(addsuffix .$(o_ext), $(basename $(libtest_all)))
 liblapacktest_obj  := $(addsuffix .$(o_ext), $(basename $(liblapacktest_all2)))
 testing_obj        := $(addsuffix .$(o_ext), $(basename $(testing_all)))
@@ -418,7 +414,6 @@ endif
 
 deps :=
 deps += $(addsuffix .d, $(basename $(libmagma_all)))
-deps += $(addsuffix .d, $(basename $(libblas_fix_src)))
 deps += $(addsuffix .d, $(basename $(libtest_all)))
 deps += $(addsuffix .d, $(basename $(lapacktest_all2)))
 deps += $(addsuffix .d, $(basename $(testing_all)))
@@ -441,7 +436,6 @@ $(sparse_testing_obj): testing/testings.h
 
 # this allows "make force=force" to force re-compiling
 $(libmagma_obj):       $(force)
-$(libblas_fix_obj):    $(force)
 $(libtest_obj):        $(force)
 $(liblapacktest_obj):  $(force)
 $(testing_obj):        $(force)
@@ -520,7 +514,6 @@ test_headers: $(header_gch)
 # ----- libraries
 libmagma_a      := lib/libmagma.a
 libmagma_so     := lib/libmagma.so
-libblas_fix_a   := lib/libblas_fix.a
 libtest_a       := testing/libtest.a
 liblapacktest_a := testing/lin/liblapacktest.a
 libsparse_a     := lib/libmagma_sparse.a
@@ -532,7 +525,6 @@ libs_a := \
 	$(libmagma_a)		\
 	$(libtest_a)		\
 	$(liblapacktest_a)	\
-	$(libblas_fix_a)	\
 	$(libsparse_a)		\
 
 # shared libraries
@@ -545,7 +537,6 @@ libs_so := \
 # add objects to libraries
 $(libmagma_a):      $(libmagma_obj)
 $(libmagma_so):     $(libmagma_obj)
-$(libblas_fix_a):   $(libblas_fix_obj)
 $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
 $(libsparse_a):     $(libsparse_obj)
@@ -570,26 +561,6 @@ sparse_testers := $(basename $(sparse_testing_all))
 $(testers):        $(libtest_a) $(liblapacktest_a)
 $(testers_f):      $(libtest_a) $(liblapacktest_a)
 $(sparse_testers): $(libtest_a)  # doesn't use liblapacktest
-
-# ----- blas_fix
-# if using blas_fix (e.g., on MacOS), libmagma requires libblas_fix
-ifeq ($(blas_fix),1)
-    $(libmagma_a):     | $(libblas_fix_a)
-    $(libmagma_so):    | $(libblas_fix_a)
-    $(testers):        | $(libblas_fix_a)
-    $(testers_f):      | $(libblas_fix_a)
-    $(sparse_testers): | $(libblas_fix_a)
-endif
-
-
-# ------------------------------------------------------------------------------
-# MacOS (darwin) needs shared library's path set
-# $OSTYPE may not be exported from the shell, so echo it
-ostype = ${shell echo $${OSTYPE}}
-ifneq ($(findstring darwin, ${ostype}),)
-    $(libmagma_so):  LDFLAGS += -install_name @rpath/$(notdir $(libmagma_so))
-    $(libsparse_so): LDFLAGS += -install_name @rpath/$(notdir $(libsparse_so))
-endif
 
 
 # ------------------------------------------------------------------------------
@@ -683,10 +654,6 @@ else
 endif
 # --------------------
 
-ifeq ($(blas_fix),1)
-    libs += $(libblas_fix_a)
-endif
-
 
 # ------------------------------------------------------------------------------
 # static libraries
@@ -720,8 +687,6 @@ endif
 # ----------
 # sub-directory builds
 include:             $(header_all)
-
-blas_fix:            $(libblas_fix_a)
 
 control:             $(control_obj)
 
@@ -757,9 +722,6 @@ run_test: test
 include/clean:
 	-rm -f $(shdr) $(dhdr) $(chdr)
 
-blas_fix/clean:
-	-rm -f $(libblas_fix_a) $(libblas_fix_obj)
-
 control/clean:
 	-rm -f $(control_obj) include/*.mod control/*.mod
 
@@ -794,7 +756,7 @@ testing/lin/clean:
 	-rm -f $(liblapacktest_a) $(liblapacktest_obj)
 
 # hmm... what should lib/clean do? just the libraries, not objects?
-lib/clean: blas_fix/clean sparse/clean
+lib/clean: sparse/clean
 	-rm -f $(libmagma_a) $(libmagma_so) $(libmagma_obj)
 
 sparse/clean: sparse/testing/clean
@@ -846,8 +808,7 @@ ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
-CXXFLAGS += -D__HIP_PLATFORM_AMD__
-CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
+CXXFLAGS += -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2
 endif
 
 
@@ -983,10 +944,10 @@ $(sparse_testers): %: %.$(o_ext)
 # filter out MAGMA-specific options for pkg-config
 #TODO: add hip specific ones
 INSTALL_FLAGS := $(filter-out \
-	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
+	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_MKL \
 	-DMAGMA_CUDA_ARCH=% -DMAGMA_CUDA_ARCH_MIN=% \
 	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
-	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
+	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++14 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))
 
 INSTALL_LDFLAGS := $(filter-out -fPIC -Wall, $(LDFLAGS))
@@ -1017,33 +978,6 @@ pkgconfig:
 
 
 # ------------------------------------------------------------------------------
-# files.txt is nearly all (active) files in SVN, excluding directories. Useful for rsync, etc.
-# files-doxygen.txt is all (active) source files in SVN, used by Doxyfile-fast
-
-# excludes non-active directories like obsolete.
-# excludes directories by matching *.* files (\w\.\w) and some exceptions like Makefile.
-files.txt: force
-	hg st -m -a -c \
-		| perl -pe 's/^. +//' | sort \
-		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
-		| egrep '\w\.\w|Makefile|docs|run' \
-		> files.txt
-	egrep -v '(\.html|\.css|\.f|\.in|\.m|\.mtx|\.pl|\.png|\.sh|\.txt)$$|checkdiag|COPYRIGHT|docs|example|make\.|Makefile|quark|README|Release|results|testing_|testing/lin|testing/matgen|tools' files.txt \
-		| perl -pe 'chomp; $$_ = sprintf("\t../%-57s\\\n", $$_);' \
-		> files-doxygen.txt
-
-# files.txt per sub-directory
-subdir_files = $(addsuffix /files.txt,$(subdirs) $(sparse_subdirs))
-
-$(subdir_files): force
-	cd $(dir $@) && hg st -m -a -c -X '*/*' . \
-		| perl -pe 's/^. +//' | sort \
-		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
-		| egrep '\w\.\w|Makefile|docs|run' \
-		> files.txt
-
-
-# ------------------------------------------------------------------------------
 echo:
 	@echo "====="
 	@echo "hdr                $(hdr)\n"
@@ -1066,10 +1000,6 @@ echo:
 	@echo "libsparse_obj      $(libsparse_obj)\n"
 	@echo "libsparse_a        $(libsparse_a)"
 	@echo "libsparse_so       $(libsparse_so)"
-	@echo "====="
-	@echo "blas_fix           $(blas_fix)"
-	@echo "libblas_fix_src    $(libblas_fix_src)"
-	@echo "libblas_fix_a      $(libblas_fix_a)"
 	@echo "====="
 	@echo "libtest_src        $(libtest_src)\n"
 	@echo "libtest_all        $(libtest_all)\n"

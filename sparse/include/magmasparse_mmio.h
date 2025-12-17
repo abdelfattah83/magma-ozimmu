@@ -1,4 +1,4 @@
-/* 
+/*
 *   Matrix Market I/O library for ANSI C
 *
 *   See http://math.nist.gov/MatrixMarket for details.
@@ -22,12 +22,12 @@ typedef char MM_typecode[4];
 void mm_snprintf_typecode( char *buffer, size_t buflen, MM_typecode matcode );
 
 int mm_read_banner(FILE *f, MM_typecode *matcode);
-int mm_read_mtx_crd_size(FILE *f, magma_index_t *M, magma_index_t *N, 
+int mm_read_mtx_crd_size(FILE *f, magma_index_t *M, magma_index_t *N,
                                                     magma_index_t *nz);
 int mm_read_mtx_array_size(FILE *f, magma_index_t *M, magma_index_t *N);
 
 int mm_write_banner(FILE *f, MM_typecode matcode);
-int mm_write_mtx_crd_size(FILE *f, magma_index_t M, magma_index_t N, 
+int mm_write_mtx_crd_size(FILE *f, magma_index_t M, magma_index_t N,
                                                     magma_index_t nz);
 int mm_write_mtx_array_size(FILE *f, magma_index_t M, magma_index_t N);
 
@@ -95,7 +95,7 @@ int mm_is_valid(MM_typecode matcode);    /* too complex for a macro */
 
    MM_matrix_typecode: 4-character sequence
 
-                     object     sparse/      data         storage 
+                     object     sparse/      data         storage
                                 dense        type         scheme
 
    string position:  [0]        [1]          [2]          [3]
@@ -113,7 +113,7 @@ int mm_is_valid(MM_typecode matcode);    /* too complex for a macro */
 
 #define MM_ARRAY_STR      "array"
 #define MM_DENSE_STR      "array"
-#define MM_COORDINATE_STR "coordinate" 
+#define MM_COORDINATE_STR "coordinate"
 #define MM_SPARSE_STR     "coordinate"
 
 #define MM_COMPLEX_STR    "complex"
@@ -125,21 +125,6 @@ int mm_is_valid(MM_typecode matcode);    /* too complex for a macro */
 #define MM_SYMM_STR       "symmetric"
 #define MM_HERM_STR       "hermitian"
 #define MM_SKEW_STR       "skew-symmetric"
-
-
-/*  high level routines */
-
-int mm_write_mtx_crd(char fname[], magma_index_t M, magma_index_t N, magma_index_t nz, 
-      magma_index_t I[], magma_index_t J[], double val[], MM_typecode matcode);
-int mm_read_mtx_crd_data(FILE *f, magma_index_t M, magma_index_t N, magma_index_t nz, 
-      magma_index_t I[], magma_index_t J[], double val[], MM_typecode matcode);
-int mm_read_mtx_crd_entry(FILE *f, magma_index_t *I, magma_index_t *J, 
-        double *real, double *img, MM_typecode matcode);
-
-int mm_read_unsymmetric_sparse(const char *fname, magma_index_t *M_, 
-        magma_index_t *N_, magma_index_t *nz_, 
-        double **val_, magma_index_t **I_, magma_index_t **J_);
-
 
 
 #endif

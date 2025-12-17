@@ -1,5 +1,5 @@
 #//////////////////////////////////////////////////////////////////////////////
-#   -- MAGMA (version 2.0) --
+#   -- MAGMA (version 2.x) --
 #      Univ. of Tennessee, Knoxville
 #      Univ. of California, Berkeley
 #      Univ. of Colorado, Denver
@@ -35,11 +35,6 @@ BACKEND      = hip
 # set these to their real paths
 ROCM_PATH ?= /opt/rocm
 CUDADIR   ?= /usr/local/cuda
-
-# require either hip or cuda
-ifeq (,$(findstring $(BACKEND),hip cuda))
-    $(error "'BACKEND' should be either 'cuda' or 'hip' (got $$BACKEND=$(BACKEND))")
-endif
 
 # --------------------
 # programs
@@ -104,20 +99,11 @@ LDFLAGS     =     $(FPIC) $(FOPENMP)
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_
 
-# Add ROCM_VERSION for device compilation
-DEVCCFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
-
 # add the flags in a backend-specific way
 ifeq ($(BACKEND),cuda)
     DEVCCFLAGS += -Xcompiler "$(FPIC)" -Xcompiler "$(FOPENMP)" -std=c++11
 else ifeq ($(BACKEND),hip)
     DEVCCFLAGS += $(FPIC) $(FOPENMP) -std=c++11
-    # check for older versions of ROCM
-    ifeq ($(shell hipconfig --version | cut -b -3),3.0)
-        $(info Building with HIP 3.0)
-        # they don't have hipblasComplex yet, so replace it manually
-        DEVCCFLAGS += -DhipblasComplex=hipComplex -DhipblasDoubleComplex=hipDoubleComplex
-    endif
 endif
 
 

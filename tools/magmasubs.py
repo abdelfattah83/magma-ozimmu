@@ -501,8 +501,7 @@ subs = {
     ('float',                'double',               'cuFloatComplex',       'cuDoubleComplex'     ),
     ('float',                'double',               'hipFloatComplex',      'hipDoubleComplex'    ),
     ('CUDA_R_32F',           'CUDA_R_64F',           'CUDA_C_32F',           'CUDA_C_64F'          ),
-    #('float',                'double',               'hipComplex',           'hipDoubleComplex'   ),
-    ('float',                'double',               'hipblasComplex',       'hipblasDoubleComplex'),
+    ('float',                'double',               'hipComplex',           'hipDoubleComplex'    ),
     ('float',                'double',               'MKL_Complex8',         'MKL_Complex16'       ),
     ('magmaFloat_const_ptr', 'magmaDouble_const_ptr','magmaFloatComplex_const_ptr', 'magmaDoubleComplex_const_ptr'),  # before magmaDoubleComplex
     ('magmaFloat_const_ptr', 'magmaDouble_const_ptr','magmaFloat_const_ptr',        'magmaDouble_const_ptr'       ),  # before magmaDoubleComplex
@@ -758,6 +757,7 @@ subs = {
     # magma_[get_]d -> magma_[get_]s, so revert _sevice to _device, etc.
     ('_device',        '_sevice',        '_device',        '_sevice'         ),
     ('magma_devptr_t', 'magma_sevptr_t', 'magma_devptr_t', 'magma_sevptr_t'  ),
+    ('magma_deprec',   'magma_seprec',   'magma_deprec',   'magma_seprec'    ),
     ('magma_diag',     'magma_siag',     'magma_diag',     'magma_siag'      ),
     ('magma_direct',   'magma_sirect',   'magma_direct',   'magma_sirect'    ),
     ('lapack_diag',    'lapack_siag',    'lapack_diag',    'lapack_siag'     ),

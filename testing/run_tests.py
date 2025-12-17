@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # MAGMA (version 2.0) --
 # Univ. of Tennessee, Knoxville
@@ -361,8 +361,8 @@ if opts.no_svd  : opts.svd  = False
 if opts.no_batched  : opts.batched  = False
 if opts.no_vbatched : opts.vbatched = False
 
-#print 'opts', opts
-#print 'args', args
+#print( 'opts', opts )
+#print( 'args', args )
 
 ngpu  = '--ngpu '  + opts.ngpu  + ' '
 batch = '--batch ' + opts.batch + ' '
@@ -748,6 +748,11 @@ chol = (
 	('testing_ztrtri_gpu',      '-U -DU -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-U -DN -c',  n,    ''),
 
+	('testing_ztrtri_gpu', '--version 2 -L -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -L -DN -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DN -c',  n,    ''),
+
 	('testing_zpotrf_mgpu', ngpu + '-L    -c',  n,    ''),
 	('testing_zpotrf_mgpu', ngpu + '-U    -c',  n,    ''),
 
@@ -814,6 +819,7 @@ lu = (
 	('testing_zgetrf_gpu', '--version 5 -c2', n,    ''), # zgetrf native expert api
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
+	('testing_zgetri_gpu', '--version 2 -c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
 
 	# ----------
@@ -1348,6 +1354,8 @@ batched = (
 
 	# ----- QR
 	('testing_zgeqrf_batched',    batch + '               -c',  mn,   ''),
+	('testing_zunmqr_batched',    batch + '               -c',  mnk,  ''),
+	('testing_zunmqr_batched',    batch + '       -C      -c',  mnk,  ''),
 
 	# ----- LU
 	('testing_zgesv_batched',         batch + '           -c',  mn,   ''),
@@ -1685,7 +1693,7 @@ def run( cmd ):
 		line = p.stdout.readline().decode()
 		if not line:
 			break
-		print (line.rstrip())
+		print( line.rstrip() )
 		if re.search( r'\bok *$', line ):
 			okay += 1
 		if re.search( 'failed', line ):
@@ -1757,7 +1765,8 @@ for test in tests:
 			continue
 		# end
 		if (not os.path.exists( cmdp )):
-			print >>sys.stderr, cmdp, "doesn't exist (original name: " + cmd + ", precision: " + precision + ")"
+			print( cmdp, "doesn't exist (original name: " + cmd
+			       + ", precision: " + precision + ")", file=sys.stderr )
 			continue
 		# end
 		seen[ cmd_opts ] = True
